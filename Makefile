@@ -18,6 +18,10 @@ test:
 	@echo "Running the testing..."
 	@go test -v ./...
 
+lint:
+	@echo "Running golangci-lint..."
+	@golangci-lint run ./...
+
 clean:
 	@echo "Cleaning up..."
 	@rm -rf $(BUILD_DIR)

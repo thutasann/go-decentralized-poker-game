@@ -3,7 +3,6 @@ package p2p
 import (
 	"fmt"
 	"net"
-	"sync"
 )
 
 // Server Config struct
@@ -20,10 +19,10 @@ type Peer struct {
 type Server struct {
 	ServerConfig
 
-	listener net.Listener       // net listener
-	mu       sync.RWMutex       // mutex
-	peers    map[net.Addr]*Peer // peers map
-	addPeer  chan *Peer         // add peer channel
+	listener net.Listener // net listener
+	// mu       sync.RWMutex       // mutex
+	peers   map[net.Addr]*Peer // peers map
+	addPeer chan *Peer         // add peer channel
 }
 
 // Initialize a new Server
@@ -47,7 +46,7 @@ func (s *Server) Start() {
 		panic(err)
 	}
 
-	fmt.Printf("game server running on port %s", s.ServerConfig.ListenAddr)
+	fmt.Printf("game server running on port %s", s.ListenAddr)
 
 	// accept loop
 	s.acceptLoop()
