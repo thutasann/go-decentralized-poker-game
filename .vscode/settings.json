@@ -1,11 +1,12 @@
 {
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "prettier.prettier-vscode",
+  "[go]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": false,
+    "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
-    "[go]": {
-      "editor.tabSize": 2,
-      "editor.insertSpaces": false,
-      "editor.formatOnPaste": true,
-      "editor.formatOnSave": true,
-      "editor.formatOnSaveMode": "file",
-      "editor.defaultFormatter": "golang.go"
-  },
+    "editor.formatOnSaveMode": "file",
+    "editor.defaultFormatter": "golang.go"
+  }
 }
