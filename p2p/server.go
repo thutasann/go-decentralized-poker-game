@@ -1,7 +1,9 @@
 package p2p
 
 import (
+	"bytes"
 	"fmt"
+	"log"
 	"net"
 )
 
@@ -14,18 +16,22 @@ type ServerConfig struct {
 type Server struct {
 	ServerConfig
 
-	listener net.Listener // net listener
+	handler  Handler
+	listener net.Listener       // net listener
+	peers    map[net.Addr]*Peer // peers map
+	addPeer  chan *Peer         // add peer channel
+	msgCh    chan *Message      // message channel
 	// mu       sync.RWMutex       // mutex
-	peers   map[net.Addr]*Peer // peers map
-	addPeer chan *Peer         // add peer channel
 }
 
 // Initialize a new Server
 func NewServer(cfg ServerConfig) *Server {
 	return &Server{
+		handler:      &DefaultHandler{},
 		ServerConfig: cfg,
 		peers:        make(map[net.Addr]*Peer),
 		addPeer:      make(chan *Peer),
+		msgCh:        make(chan *Message),
 	}
 }
 
@@ -47,6 +53,21 @@ func (s *Server) Start() {
 	s.acceptLoop()
 }
 
+// Loop the server
+func (s *Server) loop() {
+	for {
+		select {
+		case peer := <-s.addPeer:
+			s.peers[peer.conn.RemoteAddr()] = peer
+			fmt.Printf("New Player connected: %s\n", peer.conn.RemoteAddr())
+		case msg := <-s.msgCh:
+			if err := s.handler.HandleMessage(msg); err != nil {
+				panic(err)
+			}
+		}
+	}
+}
+
 // Listen the server
 func (s *Server) listen() error {
 	listen, err := net.Listen("tcp", s.ListenAddr)
@@ -56,14 +77,6 @@ func (s *Server) listen() error {
 
 	s.listener = listen
 	return nil
-}
-
-// Loop the server
-func (s *Server) loop() {
-	for peer := range s.addPeer {
-		s.peers[peer.conn.RemoteAddr()] = peer
-		fmt.Printf("New Player connected: %s\n", peer.conn.RemoteAddr())
-	}
 }
 
 // Accept the Server Loop
@@ -80,7 +93,9 @@ func (s *Server) acceptLoop() {
 
 		s.addPeer <- peer
 
-		peer.Send([]byte("GGPOKER V0.1-beta"))
+		if err := peer.Send([]byte("GGPOKER V0.1-beta")); err != nil {
+			log.Printf("failed to send handshake to peer: %v", err)
+		}
 
 		go s.handleConn(conn)
 	}
@@ -94,6 +109,10 @@ func (s *Server) handleConn(conn net.Conn) {
 		if err != nil {
 			break
 		}
-		fmt.Println(string(buf[:n]))
+
+		s.msgCh <- &Message{
+			From:    conn.RemoteAddr(),
+			Payload: bytes.NewReader(buf[:n]),
+		}
 	}
 }
