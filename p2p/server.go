@@ -9,6 +9,7 @@ import (
 
 // Server Config struct
 type ServerConfig struct {
+	Version    string // App version
 	ListenAddr string // listen address
 }
 
@@ -20,6 +21,7 @@ type Server struct {
 	listener net.Listener       // net listener
 	peers    map[net.Addr]*Peer // peers map
 	addPeer  chan *Peer         // add peer channel
+	delPeer  chan *Peer         // delete peer channel
 	msgCh    chan *Message      // message channel
 	// mu       sync.RWMutex       // mutex
 }
@@ -31,6 +33,7 @@ func NewServer(cfg ServerConfig) *Server {
 		ServerConfig: cfg,
 		peers:        make(map[net.Addr]*Peer),
 		addPeer:      make(chan *Peer),
+		delPeer:      make(chan *Peer),
 		msgCh:        make(chan *Message),
 	}
 }
@@ -60,6 +63,11 @@ func (s *Server) loop() {
 		case peer := <-s.addPeer:
 			s.peers[peer.conn.RemoteAddr()] = peer
 			fmt.Printf("New Player connected: %s\n", peer.conn.RemoteAddr())
+
+		case peer := <-s.delPeer:
+			delete(s.peers, peer.conn.RemoteAddr())
+			fmt.Printf("player disconnected %s\n", peer.conn.RemoteAddr())
+
 		case msg := <-s.msgCh:
 			if err := s.handler.HandleMessage(msg); err != nil {
 				panic(err)
@@ -93,26 +101,28 @@ func (s *Server) acceptLoop() {
 
 		s.addPeer <- peer
 
-		if err := peer.Send([]byte("GGPOKER V0.1-beta")); err != nil {
+		if err := peer.Send([]byte(s.Version)); err != nil {
 			log.Printf("failed to send handshake to peer: %v", err)
 		}
 
-		go s.handleConn(conn)
+		go s.handleConn(peer)
 	}
 }
 
 // Handle the Server Connection
-func (s *Server) handleConn(conn net.Conn) {
+func (s *Server) handleConn(p *Peer) {
 	buf := make([]byte, 1024)
 	for {
-		n, err := conn.Read(buf)
+		n, err := p.conn.Read(buf)
 		if err != nil {
 			break
 		}
 
 		s.msgCh <- &Message{
-			From:    conn.RemoteAddr(),
+			From:    p.conn.RemoteAddr(),
 			Payload: bytes.NewReader(buf[:n]),
 		}
 	}
+
+	s.delPeer <- p
 }

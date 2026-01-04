@@ -9,7 +9,8 @@ type Handler interface {
 	HandleMessage(*Message) error
 }
 
-type DefaultHandler struct{}
+type DefaultHandler struct {
+}
 
 func (h *DefaultHandler) HandleMessage(msg *Message) error {
 	b, err := io.ReadAll(msg.Payload)
