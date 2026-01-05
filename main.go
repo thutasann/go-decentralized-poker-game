@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/thuta/ggpoker/p2p"
 )
 
@@ -18,6 +20,7 @@ func main() {
 	}
 	server := p2p.NewServer(cfg)
 	go server.Start()
+	time.Sleep(1 * time.Second)
 
 	// remote server config
 	remoteCfg := p2p.ServerConfig{
@@ -26,7 +29,7 @@ func main() {
 	}
 	remoteServer := p2p.NewServer(remoteCfg)
 	go remoteServer.Start()
-	if err := remoteServer.Connect("localhost:3000"); err != nil {
+	if err := remoteServer.Connect(":3000"); err != nil {
 		panic(err)
 	}
 
