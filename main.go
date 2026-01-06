@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/thuta/ggpoker/deck"
 	"github.com/thuta/ggpoker/p2p"
 )
 
@@ -33,5 +35,5 @@ func main() {
 		panic(err)
 	}
 
-	select {}
+	fmt.Println(deck.New())
 }
