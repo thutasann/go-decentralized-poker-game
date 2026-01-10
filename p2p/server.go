@@ -1,6 +1,7 @@
 package p2p
 
 import (
+	"log"
 	"net"
 
 	"github.com/sirupsen/logrus"
@@ -55,7 +56,9 @@ func (s *Server) Start() {
 		"type": "go poker",
 	}).Info("started new game server")
 
-	s.transport.ListenAndAccept()
+	if err := s.transport.ListenAndAccept(); err != nil {
+		log.Fatal("listen and accept error: ", err)
+	}
 }
 
 // Connect the Server

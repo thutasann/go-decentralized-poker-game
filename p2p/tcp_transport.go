@@ -3,6 +3,7 @@ package p2p
 import (
 	"bytes"
 	"io"
+	"log"
 	"net"
 
 	"github.com/sirupsen/logrus"
@@ -41,7 +42,9 @@ func (p *Peer) ReadLoop(msgch chan *Message) {
 	}
 
 	// TODO: unregister this peer
-	p.conn.Close()
+	if err := p.conn.Close(); err != nil {
+		log.Fatal("errror at connection close: ", err)
+	}
 }
 
 // TCP Transport struct
