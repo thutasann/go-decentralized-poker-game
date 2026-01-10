@@ -13,9 +13,9 @@ type Message struct {
 	From    net.Addr
 }
 
-// Peer struct
+// Peer represents a connected client in the system.
 type Peer struct {
-	conn net.Conn // peer connection
+	conn net.Conn // active network connection to the peer
 }
 
 // Send Fn

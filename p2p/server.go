@@ -1,6 +1,8 @@
 package p2p
 
 import (
+	"bytes"
+	"encoding/gob"
 	"log"
 	"net"
 
@@ -18,7 +20,6 @@ type ServerConfig struct {
 type Server struct {
 	ServerConfig
 
-	handler   Handler
 	transport *TCPTransport
 	peers     map[net.Addr]*Peer // peers map
 	addPeer   chan *Peer         // add peer channel
@@ -29,7 +30,6 @@ type Server struct {
 // Initialize a new Server
 func NewServer(cfg ServerConfig) *Server {
 	s := &Server{
-		handler:      &DefaultHandler{},
 		ServerConfig: cfg,
 		peers:        make(map[net.Addr]*Peer),
 		addPeer:      make(chan *Peer),
@@ -77,4 +77,19 @@ func (s *Server) Connect(addr string) error {
 	s.addPeer <- peer
 
 	return peer.Send([]byte(s.Version))
+}
+
+// Send the HandShake to the Peers
+func (s *Server) SendHandShake(p *Peer) error {
+	hs := &HandShake{
+		GameVariant: s.GameVariant,
+		Version:     s.Version,
+	}
+
+	buf := new(bytes.Buffer)
+	if err := gob.NewEncoder(buf).Encode(hs); err != nil {
+		return err
+	}
+
+	return p.Send(buf.Bytes())
 }

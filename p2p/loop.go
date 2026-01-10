@@ -20,6 +20,12 @@ func (s *Server) loop() {
 			delete(s.peers, peer.conn.RemoteAddr())
 
 		case peer := <-s.addPeer:
+			// Handshake
+			if err := s.handshake(peer); err != nil {
+				logrus.Info("handshake with incoming player failed: ", err)
+				continue
+			}
+
 			// TODO: check max players and other game state logic
 			go peer.ReadLoop(s.msgCh)
 
@@ -30,7 +36,7 @@ func (s *Server) loop() {
 			s.peers[peer.conn.RemoteAddr()] = peer
 
 		case msg := <-s.msgCh:
-			if err := s.handler.HandleMessage(msg); err != nil {
+			if err := s.handleMessage(msg); err != nil {
 				panic(err)
 			}
 		}
