@@ -7,13 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Game variant
-type GameVariant uint8
-
-const (
-	TexasHoldem GameVariant = iota
-)
-
 // Server Config struct
 type ServerConfig struct {
 	Version     string      // App version
