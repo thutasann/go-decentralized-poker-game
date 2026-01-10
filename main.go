@@ -10,8 +10,9 @@ import (
 func main() {
 	// server config
 	cfg := p2p.ServerConfig{
-		Version:    "GGPOKER V0.1-beta",
-		ListenAddr: ":3000",
+		Version:     "GGPOKER V0.1-beta",
+		ListenAddr:  ":3000",
+		GameVariant: p2p.TexasHoldem,
 	}
 	server := p2p.NewServer(cfg)
 	go server.Start()
@@ -21,8 +22,9 @@ func main() {
 
 	// remote server config
 	remoteCfg := p2p.ServerConfig{
-		Version:    "GGPOKER V0.1-beta",
-		ListenAddr: ":4000",
+		Version:     "GGPOKER V0.1-beta",
+		ListenAddr:  ":4000",
+		GameVariant: p2p.TexasHoldem,
 	}
 	remoteServer := p2p.NewServer(remoteCfg)
 	go remoteServer.Start()

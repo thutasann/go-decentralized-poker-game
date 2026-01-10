@@ -7,10 +7,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Game variant
+type GameVariant uint8
+
+const (
+	TexasHoldem GameVariant = iota
+)
+
 // Server Config struct
 type ServerConfig struct {
-	Version    string // App version
-	ListenAddr string // listen address
+	Version     string      // App version
+	ListenAddr  string      // listen address
+	GameVariant GameVariant // variant of games
 }
 
 // Server struct
@@ -52,8 +60,8 @@ func (s *Server) Start() {
 	go s.loop()
 
 	logrus.WithFields(logrus.Fields{
-		"port": s.ListenAddr,
-		"type": "go poker",
+		"port":    s.ListenAddr,
+		"variant": s.GameVariant,
 	}).Info("started new game server")
 
 	if err := s.transport.ListenAndAccept(); err != nil {
